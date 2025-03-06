@@ -8,4 +8,4 @@ int main(void)
     fprintf(f, __B__);
     fclose(f);
     return 0;
-}
+} 
