@@ -1,0 +1,207 @@
+AICE1007 Lab 3
+===
+
+As we have covered a broader set of topics over the last few lectures, the
+exercises in this laboratory are more discordant, though the primary aim here
+is to explore FILE I/O and the preprocessor in greater detail.
+
+Red
+---
+
+Given the following struct:
+
+```
+struct result
+{
+    unsigned hits;
+    unsigned misses;
+    int rc;
+};
+```
+
+Write a C99 function `struct result find_words_with_chars(char const *const
+path, char const search)`, which opens the file at `path`, and counts the
+number of words in that file with the character `search`.
+
+If `path` could not be opened, set the following fields in the returned
+`result` struct:
+ - `hits` to 0
+ - `misses` to 0
+ - `rc` to 1
+
+If `path` could be opened, set:
+ - `hits` equal to the number of words containing the character `search`,
+ - `misses` to the number of other words,
+ - `rc` to 0
+
+By way of example, given the struct defined above:
+
+```
+#include <stdio.h>
+int main(void)
+{
+    struct result r;
+    r = find_words_with_chars("lab3.txt" /* This document! */, 'o');
+    printf("%u:%u, ret: %d\n", r.hits, r.misses, r.rc);
+    /* Prints "242:707 ret: 0" */
+
+    r = find_words_with_chars("lab3.txt", 'j');
+    printf("%u:%u, ret: %d\n", r.hits, r.misses, r.rc);
+    /* Prints "1:948 ret: 0" */
+
+    r = find_words_with_chars("this_file_does_not_exist", 'e');
+    printf("%u:%u, ret: %d\n", r.hits, r.misses, r.rc);
+    /* Prints "0:0 ret: 1" */
+
+    return 0;
+}
+```
+
+Hints:
+
+ - Include the struct definition in your submission.
+
+ - When searching for 'o', the word Orangutan is a miss, but the word oregano
+   is a hit (it counts exactly once!)
+
+ - A word is a collection of contiguous alphabet characters of any case. You
+   can treat the o in 'o' as a word also. You might find the `isalpha` function
+   in the `ctype.h` header useful (try `man isalpha`).
+
+ - There are many appropriate reading methods to use for this - consider
+   reviewing the lecture on FILEs to see the different methods you could use. I
+   suggest `fgetc`. We haven't covered `strtok`, but feel free to use it if you
+   either know what you are doing, or want to learn something new.
+
+Amber
+---
+
+The ReLU (Rectified Linear Unit) function is frequently used in machine
+learning as a nonlinearity source, which helps certain types of neural networks
+learn complex nonlinear behaviour. The ReLU function operating on x is defined
+using the ternary operator as:
+
+  ReLU(x): x < 0 ? 0 : x
+
+Write a C99 preprocessor macro `RELU` (all capitals) that accepts:
+
+ - an array of signed numeric values as the first argument, and
+ - the length of that array as an unsigned numeric type (either variable or
+   expression) as the second argument.
+
+and modifies the values of the array in-place using the ReLU function. Further
+details follow:
+
+ - Assume that this macro will only be used at points where a C statement can
+   be started (e.g. not in the parentheses of an `if`).
+
+ - The type of value in the array can be of any signed fundamental numeric
+   type, including `char`, `int`, `long long`, `double`, `int64_t`, and
+   more. You can assume that operands of these types support comparison via
+   `<`.
+
+ - The array must be at least of size 1.
+
+Write your macro in a header file called "lab3_amber.h" - your input file will
+not be compiled, and will instead be included by the test system.
+
+Example usage:
+
+```
+#include <stdio.h>
+#include "lab3_amber.h"  /* That's what I've called my header file */
+#define SIZE 5
+int main(void)
+{
+    int x[SIZE] = {-4, 9, -13, 0, 4963};
+    RELU(x, SIZE);
+    for (size_t i = 0; i < SIZE; printf("%d ", x[i++]));
+    /* This should print: 0, 9, 0, 0, 4963 */
+    return 0;
+}
+```
+
+Hints:
+
+ - In the example above, what happens if you replace `int` with `char`? Do you
+   understand the warning? What happens if you ignore it?
+
+ - You can split a #define over multiple lines using a '\' character, e.g.
+
+```
+#define A_VALUE \
+    5
+#define B_FUNC void \
+    func(void){return;}
+```
+
+Green 1
+---
+
+Two optional exercises this week, one related to FILEs, and one related to
+the preprocessor.
+
+Write a C99 function that makes a copy of Alice in Wonderland, with the name
+"Alice" replaced with your name and your surname. Bonus points if you manage to
+maintain the width of the document.
+
+You can find the full text of Lewis Carroll's Alice in Wonderland here:
+https://archive.org/stream/alicesadventures19033gut/19033.txt.
+
+Green 2
+---
+
+This was originally the Amber exercise, as it demonstrates a case where the
+preprocessor is completely necessary (even in C23), but I had a feeling it
+might be too tricky. I ran it by Son, who agreed that it was probably too
+difficult. Let me know how you feel about it.
+
+Given the preprocessor macro:
+
+```
+#define FN_NAME(SUFFIX) fn_##SUFFIX
+```
+
+And the static variable:
+
+```
+static char whichanimal[50];
+```
+
+Write a preprocessor macro `PRINT_HANDLE(ANIMAL)` that defines a C99 function
+named `FN_NAME(ANIMAL)` (after expansion) that writes whatever `ANIMAL` as a
+null-terminated string to the variable `whichanimal`. A wrapper, to get you
+started:
+
+```
+#include <stdio.h>
+#define FN_NAME(SUFFIX) fn_##SUFFIX
+/* Your PRINT_HANDLE macro definition goes here. */
+
+PRINT_HANDLE(robin)
+PRINT_HANDLE(tortoise)
+PRINT_HANDLE(flying_pig)
+static char whichanimal[50];
+int main(void)
+{
+    fn_robin();
+    printf("%s\n", whichanimal)  /* robin */
+    fn_tortoise();
+    printf("%s\n", whichanimal)  /* tortoise */
+    fn_flying_pig();
+    printf("%s\n", whichanimal)  /* flying_pig */
+    return 0;
+}
+```
+
+Hints:
+
+ - To help you reason about this problem, your macro should expand to a
+   function definition, where both the name of the function, and the string you
+   write, is defined by the parameter to your macro.
+
+ - The FN_NAME macro I've supplied is a stringizing macro; it incorporates the
+   ANIMAL macro parameter into the function name.
+
+ - You will need to use #define to define your PRINT_HANDLE(ANIMAL) macro, and
+   use FN_NAME(ANIMAL) as the name of your function.
